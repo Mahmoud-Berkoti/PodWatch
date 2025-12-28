@@ -1,0 +1,56 @@
+# Binaries
+/bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output
+*.out
+coverage.out
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+ui/dist/
+ui/build/
+.npm
+
+# Go
+vendor/
+
+# Logs
+*.log
+logs/
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# Kubernetes
+*.kubeconfig
+kubeconfig
+
+# Helm
+*.tgz
+charts/
+
+# Secrets
+*.pem
+*.key
+*.crt
+secrets/

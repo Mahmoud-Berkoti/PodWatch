@@ -1,0 +1,92 @@
+# Default rules for KubeGuard
+# These rules are loaded at startup
+
+rules:
+  - id: "rule-shell-spawn"
+    name: "Shell Spawn in Production"
+    description: "Interactive shell spawned in production namespace"
+    severity: "high"
+    condition: |
+      event.process.exe in ['/bin/bash', '/bin/sh', '/usr/bin/bash', '/usr/bin/sh'] && 
+      event.container.namespace == 'prod'
+    response: "kill_pod"
+    enabled: true
+
+  - id: "rule-token-read"
+    name: "Service Account Token Read"
+    description: "Process reading Kubernetes service account token"
+    severity: "high"
+    condition: |
+      event.event_type == 'file_open' && 
+      event.process.cmdline.contains('/var/run/secrets/kubernetes.io/serviceaccount')
+    response: "quarantine_namespace"
+    enabled: true
+
+  - id: "rule-reverse-shell"
+    name: "Reverse Shell Indicators"
+    description: "Shell process connecting to external IP"
+    severity: "critical"
+    condition: |
+      event.event_type == 'network_connect' && 
+      (event.process.exe.endsWith('bash') || event.process.exe.endsWith('sh')) &&
+      event.network.dst_port > 0 &&
+      !event.network.dst_ip.startsWith('10.') &&
+      !event.network.dst_ip.startsWith('192.168.') &&
+      !event.network.dst_ip.startsWith('172.16.') &&
+      !event.network.dst_ip.startsWith('127.')
+    response: "kill_pod"
+    enabled: true
+
+  - id: "rule-priv-esc"
+    name: "Privilege Escalation"
+    description: "Container gained sensitive Linux capabilities"
+    severity: "critical"
+    condition: |
+      event.process.capabilities_added.exists(c, c == 'SYS_ADMIN' || c == 'NET_ADMIN' || c == 'SYS_PTRACE')
+    response: "isolate_node"
+    enabled: true
+
+  - id: "rule-pkg-manager"
+    name: "Package Manager in Production"
+    description: "Package manager executed in production environment"
+    severity: "medium"
+    condition: |
+      event.process.exe in ['/usr/bin/apt', '/usr/bin/apt-get', '/sbin/apk', '/usr/bin/yum', '/usr/bin/dnf'] &&
+      event.container.namespace == 'prod'
+    response: ""
+    enabled: true
+
+  - id: "rule-crypto-miner"
+    name: "Crypto Miner Detection"
+    description: "Known crypto mining process detected"
+    severity: "critical"
+    condition: |
+      event.process.exe.endsWith('xmrig') ||
+      event.process.cmdline.contains('stratum+tcp') ||
+      event.process.cmdline.contains('pool.minexmr')
+    response: "kill_pod"
+    enabled: true
+
+  - id: "rule-kubectl-exec"
+    name: "Kubectl Exec from Container"
+    description: "kubectl exec command run from within a container"
+    severity: "high"
+    condition: |
+      event.process.exe.endsWith('kubectl') &&
+      event.process.cmdline.contains('exec')
+    response: "quarantine_namespace"
+    enabled: true
+
+# Allowlists
+allowlists:
+  namespaces:
+    - kube-system
+    - security-system
+  
+  images:
+    - "gcr.io/distroless/*"
+    - "registry.k8s.io/*"
+  
+  processes:
+    - /usr/local/bin/falco
+    - /usr/bin/kubelet

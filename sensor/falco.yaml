@@ -1,0 +1,59 @@
+# Falco configuration for KubeGuard
+# This outputs events to the KubeGuard ingest API
+
+# Output configuration
+json_output: true
+json_include_output_property: true
+json_include_tags_property: true
+time_format_iso_8601: true
+
+# HTTP output to KubeGuard ingest
+http_output:
+  enabled: true
+  url: "http://podwatch-ingest.security-system.svc.cluster.local:8080/v1/events"
+  user_agent: "falcosecurity/falco"
+  buffered: false
+  insecure: false
+  keep_alive: true
+
+# Syscall source
+syscall_event_drops:
+  actions:
+    - log
+    - alert
+
+# Buffer sizes
+syscall_buf_size_preset: 4
+output_timeout: 2000
+
+# Modern eBPF if available
+engine:
+  kind: modern_ebpf
+  modern_ebpf:
+    cpus_for_each_buffer: 2
+
+# Logging
+log_stderr: true
+log_syslog: false
+log_level: info
+
+# Rule files
+rules_file:
+  - /etc/falco/falco_rules.yaml
+  - /etc/falco/podwatch_rules.yaml
+
+# Watch config file for changes
+watch_config_files: true
+
+# Metrics
+metrics:
+  enabled: true
+  interval: 15s
+  output_rule: true
+  rules_counters_enabled: true
+  resource_utilization_enabled: true
+  state_counters_enabled: true
+  kernel_event_counters_enabled: true
+  libbpf_stats_enabled: true
+  convert_memory_to_mb: true
+  include_empty_values: false

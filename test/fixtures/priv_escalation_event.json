@@ -1,0 +1,31 @@
+{
+  "ts": "2026-01-10T21:12:40.000Z",
+  "cluster_id": "kind-local",
+  "node_id": "kind-worker",
+  "event_type": "capability_change",
+  "event_id": "evt-privesc-001",
+  "process": {
+    "pid": 12350,
+    "ppid": 1,
+    "uid": 0,
+    "gid": 0,
+    "exe": "/bin/mount",
+    "cmdline": "mount -t proc proc /proc",
+    "cwd": "/",
+    "has_tty": false,
+    "capabilities_added": ["SYS_ADMIN", "NET_ADMIN"]
+  },
+  "container": {
+    "container_id": "containerd://xyz789abc123",
+    "image": "alpine:latest",
+    "image_digest": "sha256:xyz789abc123",
+    "pod": "priv-esc-pod",
+    "namespace": "attacker-lab",
+    "service_account": "default",
+    "labels": {
+      "app": "priv-esc"
+    }
+  },
+  "network": null,
+  "raw_ref": "s3://kubeguard-raw/raw/kind-local/2026-01-10/kind-worker/21/event.jsonl.gz#offset=3072"
+}

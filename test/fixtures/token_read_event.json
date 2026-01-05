@@ -1,0 +1,32 @@
+{
+  "ts": "2026-01-10T21:12:35.456Z",
+  "cluster_id": "kind-local",
+  "node_id": "kind-worker",
+  "event_type": "file_open",
+  "event_id": "evt-token-001",
+  "process": {
+    "pid": 12346,
+    "ppid": 12345,
+    "uid": 0,
+    "gid": 0,
+    "exe": "/bin/cat",
+    "cmdline": "cat /var/run/secrets/kubernetes.io/serviceaccount/token",
+    "cwd": "/",
+    "has_tty": true,
+    "capabilities_added": []
+  },
+  "container": {
+    "container_id": "containerd://abc123def456",
+    "image": "nginx:1.25",
+    "image_digest": "sha256:abcdef123456",
+    "pod": "vuln-nginx-7c9b",
+    "namespace": "prod",
+    "service_account": "default",
+    "labels": {
+      "app": "vuln-nginx",
+      "env": "prod"
+    }
+  },
+  "network": null,
+  "raw_ref": "s3://kubeguard-raw/raw/kind-local/2026-01-10/kind-worker/21/event.jsonl.gz#offset=1024"
+}

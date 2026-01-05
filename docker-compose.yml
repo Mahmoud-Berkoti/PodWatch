@@ -1,0 +1,150 @@
+version: '3.8'
+
+services:
+  nats:
+    image: nats:2.10-alpine
+    command: ["-js", "-m", "8222"]
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    networks:
+      - podwatch
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - podwatch
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: podwatch
+      POSTGRES_PASSWORD: podwatch
+      POSTGRES_DB: podwatch
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - podwatch
+
+  minio:
+    image: minio/minio:latest
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - podwatch
+
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Admin@123
+    ports:
+      - "9200:9200"
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    networks:
+      - podwatch
+
+  ingest:
+    build:
+      context: .
+      dockerfile: ingest/Dockerfile
+    environment:
+      NATS_URL: nats://nats:4222
+      S3_BUCKET: podwatch-raw
+      AWS_ENDPOINT: http://minio:9000
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      PORT: "8080"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - nats
+      - minio
+    networks:
+      - podwatch
+
+  enrich:
+    build:
+      context: .
+      dockerfile: enrich/Dockerfile
+    environment:
+      NATS_URL: nats://nats:4222
+    depends_on:
+      - nats
+    networks:
+      - podwatch
+
+  detect:
+    build:
+      context: .
+      dockerfile: detect/Dockerfile
+    environment:
+      NATS_URL: nats://nats:4222
+      REDIS_ADDR: redis:6379
+    depends_on:
+      - nats
+      - redis
+    networks:
+      - podwatch
+
+  incident:
+    build:
+      context: .
+      dockerfile: incident/Dockerfile
+    environment:
+      NATS_URL: nats://nats:4222
+      DATABASE_URL: postgres://podwatch:podwatch@postgres:5432/podwatch?sslmode=disable
+      PORT: "8081"
+    ports:
+      - "8081:8081"
+    depends_on:
+      - nats
+      - postgres
+    networks:
+      - podwatch
+
+  respond:
+    build:
+      context: .
+      dockerfile: respond/Dockerfile
+    environment:
+      NATS_URL: nats://nats:4222
+      DATABASE_URL: postgres://podwatch:podwatch@postgres:5432/podwatch?sslmode=disable
+    depends_on:
+      - nats
+      - postgres
+    networks:
+      - podwatch
+
+  ui:
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - incident
+    networks:
+      - podwatch
+
+volumes:
+  postgres-data:
+  minio-data:
+  opensearch-data:
+
+networks:
+  podwatch:
+    driver: bridge

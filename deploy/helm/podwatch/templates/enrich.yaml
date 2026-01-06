@@ -1,0 +1,66 @@
+{{- if .Values.enrich.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "podwatch.fullname" . }}-enrich
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "podwatch.labels" . | nindent 4 }}
+    app.kubernetes.io/component: enrich
+spec:
+  replicas: {{ .Values.enrich.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "podwatch.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: enrich
+  template:
+    metadata:
+      labels:
+        {{- include "podwatch.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: enrich
+    spec:
+      serviceAccountName: {{ include "podwatch.fullname" . }}-enrich
+      containers:
+        - name: enrich
+          image: "{{ .Values.enrich.image.repository }}:{{ .Values.enrich.image.tag }}"
+          imagePullPolicy: {{ .Values.enrich.image.pullPolicy }}
+          env:
+            - name: NATS_URL
+              value: "{{ .Values.enrich.env.NATS_URL }}"
+          resources:
+            {{- toYaml .Values.enrich.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "podwatch.fullname" . }}-enrich
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "podwatch.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "podwatch.fullname" . }}-enrich
+  labels:
+    {{- include "podwatch.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "namespaces"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "podwatch.fullname" . }}-enrich
+  labels:
+    {{- include "podwatch.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "podwatch.fullname" . }}-enrich
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "podwatch.fullname" . }}-enrich
+    namespace: {{ .Values.namespace }}
+{{- end }}

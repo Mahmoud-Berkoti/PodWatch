@@ -1,0 +1,83 @@
+{{- if .Values.respond.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "podwatch.fullname" . }}-respond
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "podwatch.labels" . | nindent 4 }}
+    app.kubernetes.io/component: respond
+spec:
+  replicas: {{ .Values.respond.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "podwatch.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: respond
+  template:
+    metadata:
+      labels:
+        {{- include "podwatch.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: respond
+    spec:
+      serviceAccountName: {{ include "podwatch.serviceAccountName" . }}
+      containers:
+        - name: respond
+          image: "{{ .Values.respond.image.repository }}:{{ .Values.respond.image.tag }}"
+          imagePullPolicy: {{ .Values.respond.image.pullPolicy }}
+          env:
+            - name: NATS_URL
+              value: "{{ .Values.respond.env.NATS_URL }}"
+            - name: DATABASE_URL
+              value: "{{ .Values.respond.env.DATABASE_URL }}"
+          resources:
+            {{- toYaml .Values.respond.resources | nindent 12 }}
+---
+{{- if .Values.respond.serviceAccount.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "podwatch.serviceAccountName" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "podwatch.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "podwatch.fullname" . }}-respond
+  labels:
+    {{- include "podwatch.labels" . | nindent 4 }}
+rules:
+  # Pod management for kill_pod action
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "delete"]
+  # Node management for isolate_node action
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "update", "patch"]
+  # NetworkPolicy for quarantine_namespace
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies"]
+    verbs: ["get", "list", "create", "update", "delete"]
+  # Read namespaces
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "podwatch.fullname" . }}-respond
+  labels:
+    {{- include "podwatch.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "podwatch.fullname" . }}-respond
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "podwatch.serviceAccountName" . }}
+    namespace: {{ .Values.namespace }}
+{{- end }}
+{{- end }}

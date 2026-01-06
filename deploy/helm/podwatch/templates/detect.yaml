@@ -1,0 +1,33 @@
+{{- if .Values.detect.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "podwatch.fullname" . }}-detect
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "podwatch.labels" . | nindent 4 }}
+    app.kubernetes.io/component: detect
+spec:
+  replicas: {{ .Values.detect.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "podwatch.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: detect
+  template:
+    metadata:
+      labels:
+        {{- include "podwatch.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: detect
+    spec:
+      containers:
+        - name: detect
+          image: "{{ .Values.detect.image.repository }}:{{ .Values.detect.image.tag }}"
+          imagePullPolicy: {{ .Values.detect.image.pullPolicy }}
+          env:
+            - name: NATS_URL
+              value: "{{ .Values.detect.env.NATS_URL }}"
+            - name: REDIS_ADDR
+              value: "{{ .Values.detect.env.REDIS_ADDR }}"
+          resources:
+            {{- toYaml .Values.detect.resources | nindent 12 }}
+{{- end }}

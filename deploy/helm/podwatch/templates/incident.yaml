@@ -1,0 +1,70 @@
+{{- if .Values.incident.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "podwatch.fullname" . }}-incident
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "podwatch.labels" . | nindent 4 }}
+    app.kubernetes.io/component: incident
+spec:
+  replicas: {{ .Values.incident.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "podwatch.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: incident
+  template:
+    metadata:
+      labels:
+        {{- include "podwatch.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: incident
+    spec:
+      containers:
+        - name: incident
+          image: "{{ .Values.incident.image.repository }}:{{ .Values.incident.image.tag }}"
+          imagePullPolicy: {{ .Values.incident.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.incident.service.port }}
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "{{ .Values.incident.service.port }}"
+            - name: NATS_URL
+              value: "{{ .Values.incident.env.NATS_URL }}"
+            - name: DATABASE_URL
+              value: "{{ .Values.incident.env.DATABASE_URL }}"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.incident.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "podwatch.fullname" . }}-incident
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "podwatch.labels" . | nindent 4 }}
+    app.kubernetes.io/component: incident
+spec:
+  type: {{ .Values.incident.service.type }}
+  ports:
+    - port: {{ .Values.incident.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "podwatch.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: incident
+{{- end }}

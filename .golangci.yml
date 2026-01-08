@@ -1,0 +1,38 @@
+# golangci-lint configuration
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+  disable:
+    - typecheck
+
+linters-settings:
+  errcheck:
+    check-type-assertions: false
+    check-blank: false
+  govet:
+    check-shadowing: false
+  staticcheck:
+    checks: ["all", "-SA1019"]
+
+issues:
+  exclude-rules:
+    # Exclude some linters from running on tests files
+    - path: _test\.go
+      linters:
+        - errcheck
+        - gosec
+    # Allow unused parameters in main functions
+    - path: main\.go
+      linters:
+        - unused
+  max-issues-per-linter: 0
+  max-same-issues: 0

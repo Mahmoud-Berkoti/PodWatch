@@ -125,7 +125,7 @@ func handleAlert(msg *nats.Msg) {
 	namespace := ""
 	podName := ""
 	nodeName := ""
-	
+
 	if alert.Event != nil {
 		if alert.Event.Container != nil {
 			namespace = alert.Event.Container.Namespace
@@ -145,7 +145,7 @@ func handleAlert(msg *nats.Msg) {
 		pod, err := clientset.CoreV1().Pods(namespace).Get(ctx, podName, metav1.GetOptions{})
 		if err == nil {
 			if pod.Labels["security.response"] == "manual" {
-				logResponseAction(alert.IncidentID, alert.Response, podName, logging.StatusSkipped, 
+				logResponseAction(alert.IncidentID, alert.Response, podName, logging.StatusSkipped,
 					"Pod has security.response=manual label", true, "Manual override label", target)
 				return
 			}
@@ -164,8 +164,8 @@ func handleAlert(msg *nats.Msg) {
 		executeEvidenceBundle(alert, target)
 	default:
 		logger.Info("Unknown response action", map[string]interface{}{
-			"action":     alert.Response,
-			"alert_id":   alert.ID,
+			"action":      alert.Response,
+			"alert_id":    alert.ID,
 			"incident_id": alert.IncidentID,
 		})
 	}
@@ -203,7 +203,7 @@ func executeKillPod(alert models.Alert, namespace, podName string, target *loggi
 
 	logResponseAction(alert.IncidentID, logging.ResponseKillPod, namespace+"/"+podName, logging.StatusSuccess,
 		"Pod terminated", false, "", target)
-	
+
 	logger.Response("Pod terminated successfully", &logging.ResponseInfo{
 		Action:   logging.ResponseKillPod,
 		Status:   logging.StatusSuccess,
@@ -228,10 +228,10 @@ func executeQuarantineNamespace(alert models.Alert, namespace string, target *lo
 	}
 
 	duration := time.Since(startTime).Milliseconds()
-	
+
 	logResponseAction(alert.IncidentID, logging.ResponseQuarantineNS, namespace, logging.StatusSuccess,
 		"NetworkPolicy applied", false, "", target)
-	
+
 	logger.Response("Namespace quarantined", &logging.ResponseInfo{
 		Action:   logging.ResponseQuarantineNS,
 		Status:   logging.StatusSuccess,
@@ -281,7 +281,7 @@ func executeIsolateNode(alert models.Alert, nodeName string, target *logging.Tar
 
 	logResponseAction(alert.IncidentID, logging.ResponseIsolateNode, nodeName, logging.StatusSuccess,
 		"Node cordoned", false, "", target)
-	
+
 	logger.Response("Node isolated", &logging.ResponseInfo{
 		Action:   logging.ResponseIsolateNode,
 		Status:   logging.StatusSuccess,
@@ -293,10 +293,10 @@ func executeIsolateNode(alert models.Alert, nodeName string, target *logging.Tar
 
 func executeEvidenceBundle(alert models.Alert, target *logging.TargetInfo) {
 	bundleID := uuid.New().String()
-	
+
 	logResponseAction(alert.IncidentID, logging.ResponseEvidenceBundle, bundleID, logging.StatusSuccess,
 		"Evidence collected", false, "", target)
-	
+
 	logger.Response("Evidence bundle created", &logging.ResponseInfo{
 		Action:   logging.ResponseEvidenceBundle,
 		Status:   logging.StatusSuccess,
@@ -307,7 +307,7 @@ func executeEvidenceBundle(alert models.Alert, target *logging.TargetInfo) {
 
 func logResponseAction(incidentID, actionType, targetStr, status, message string, blocked bool, blockReason string, target *logging.TargetInfo) {
 	actionID := uuid.New().String()
-	
+
 	// Log to database
 	_, err := db.Exec(`
 		INSERT INTO action_logs (id, incident_id, action_type, target, status, message)

@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/podwatch/podwatch/pkg/models"
 	"github.com/nats-io/nats.go"
+	"github.com/podwatch/podwatch/pkg/models"
 )
 
 var (

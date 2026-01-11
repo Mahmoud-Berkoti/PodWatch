@@ -5,15 +5,15 @@ import (
 )
 
 type RuntimeEvent struct {
-	Timestamp   time.Time         `json:"ts"`
-	ClusterID   string            `json:"cluster_id"`
-	NodeID      string            `json:"node_id"`
-	EventType   string            `json:"event_type"`
-	EventID     string            `json:"event_id"`
-	Process     *ProcessInfo      `json:"process,omitempty"`
-	Container   *ContainerInfo    `json:"container,omitempty"`
-	Network     *NetworkInfo      `json:"network,omitempty"`
-	RawRef      string            `json:"raw_ref,omitempty"`
+	Timestamp time.Time      `json:"ts"`
+	ClusterID string         `json:"cluster_id"`
+	NodeID    string         `json:"node_id"`
+	EventType string         `json:"event_type"`
+	EventID   string         `json:"event_id"`
+	Process   *ProcessInfo   `json:"process,omitempty"`
+	Container *ContainerInfo `json:"container,omitempty"`
+	Network   *NetworkInfo   `json:"network,omitempty"`
+	RawRef    string         `json:"raw_ref,omitempty"`
 }
 
 type ProcessInfo struct {
@@ -68,11 +68,11 @@ type Incident struct {
 }
 
 type Rule struct {
-	ID          string   `json:"id" yaml:"id"`
-	Name        string   `json:"name" yaml:"name"`
-	Description string   `json:"description" yaml:"description"`
-	Severity    string   `json:"severity" yaml:"severity"`
-	Condition   string   `json:"condition" yaml:"condition"` // CEL expression
-	Response    string   `json:"response" yaml:"response"`   // playbook name
-	Enabled     bool     `json:"enabled" yaml:"enabled"`
+	ID          string `json:"id" yaml:"id"`
+	Name        string `json:"name" yaml:"name"`
+	Description string `json:"description" yaml:"description"`
+	Severity    string `json:"severity" yaml:"severity"`
+	Condition   string `json:"condition" yaml:"condition"` // CEL expression
+	Response    string `json:"response" yaml:"response"`   // playbook name
+	Enabled     bool   `json:"enabled" yaml:"enabled"`
 }

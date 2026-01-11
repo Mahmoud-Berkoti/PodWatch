@@ -12,10 +12,10 @@ import (
 )
 
 type RuleEngine struct {
-	rules      []models.Rule
-	programs   map[string]cel.Program
-	mu         sync.RWMutex
-	env        *cel.Env
+	rules    []models.Rule
+	programs map[string]cel.Program
+	mu       sync.RWMutex
+	env      *cel.Env
 }
 
 func NewRuleEngine(rules []models.Rule) (*RuleEngine, error) {
@@ -78,7 +78,7 @@ func (re *RuleEngine) Evaluate(event models.RuntimeEvent) ([]models.Alert, error
 	if err := json.Unmarshal(data, &inputMap); err != nil {
 		return nil, err
 	}
-	
+
 	input := map[string]interface{}{
 		"event": inputMap,
 	}
@@ -103,7 +103,7 @@ func (re *RuleEngine) Evaluate(event models.RuntimeEvent) ([]models.Alert, error
 		if out == nil {
 			continue
 		}
-		
+
 		match, ok := out.Value().(bool)
 		if ok && match {
 			alerts = append(alerts, models.Alert{
@@ -119,4 +119,3 @@ func (re *RuleEngine) Evaluate(event models.RuntimeEvent) ([]models.Alert, error
 
 	return alerts, nil
 }
-

@@ -28,23 +28,23 @@ func NewCorrelator(redisAddr string) *Correlator {
 
 // SequenceRule defines a multi-step attack pattern
 type SequenceRule struct {
-	ID          string
-	Name        string
-	Steps       []string // CEL conditions for each step
-	WindowSecs  int64    // Time window for entire sequence
-	GroupBy     string   // Field to group by (e.g., "container.container_id")
-	Response    string
-	Severity    string
+	ID         string
+	Name       string
+	Steps      []string // CEL conditions for each step
+	WindowSecs int64    // Time window for entire sequence
+	GroupBy    string   // Field to group by (e.g., "container.container_id")
+	Response   string
+	Severity   string
 }
 
 // ThresholdRule defines rate-based detection
 type ThresholdRule struct {
 	ID         string
 	Name       string
-	Condition  string  // CEL condition for matching events
-	Count      int     // Number of events required
-	WindowSecs int64   // Time window
-	GroupBy    string  // Field to group by
+	Condition  string // CEL condition for matching events
+	Count      int    // Number of events required
+	WindowSecs int64  // Time window
+	GroupBy    string // Field to group by
 	Response   string
 	Severity   string
 }
@@ -52,7 +52,7 @@ type ThresholdRule struct {
 // TrackEvent stores an event for correlation
 func (c *Correlator) TrackEvent(event models.RuntimeEvent, ruleID, groupKey string, windowSecs int64) error {
 	key := fmt.Sprintf("corr:%s:%s", ruleID, groupKey)
-	
+
 	data, err := json.Marshal(event)
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func (c *Correlator) TrackEvent(event models.RuntimeEvent, ruleID, groupKey stri
 // CheckThreshold returns true if threshold is met
 func (c *Correlator) CheckThreshold(ruleID, groupKey string, threshold int, windowSecs int64) (bool, []string, error) {
 	key := fmt.Sprintf("corr:%s:%s", ruleID, groupKey)
-	
+
 	minScore := float64(time.Now().Unix() - windowSecs)
 	maxScore := float64(time.Now().Unix())
 
@@ -109,7 +109,7 @@ func (c *Correlator) CheckThreshold(ruleID, groupKey string, threshold int, wind
 func (c *Correlator) TrackSequenceStep(ruleID, groupKey string, step int, eventID string, windowSecs int64) error {
 	key := fmt.Sprintf("seq:%s:%s", ruleID, groupKey)
 	field := fmt.Sprintf("step_%d", step)
-	
+
 	if err := c.rdb.HSet(c.ctx, key, field, eventID).Err(); err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func (c *Correlator) TrackSequenceStep(ruleID, groupKey string, step int, eventI
 // CheckSequenceComplete checks if all steps are completed
 func (c *Correlator) CheckSequenceComplete(ruleID, groupKey string, totalSteps int) (bool, []string, error) {
 	key := fmt.Sprintf("seq:%s:%s", ruleID, groupKey)
-	
+
 	result, err := c.rdb.HGetAll(c.ctx, key).Result()
 	if err != nil {
 		return false, nil, err

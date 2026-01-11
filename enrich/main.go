@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/podwatch/podwatch/pkg/models"
 	"github.com/nats-io/nats.go"
+	"github.com/podwatch/podwatch/pkg/models"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -139,7 +139,7 @@ func enrichEvent(msg *nats.Msg) {
 			event.Container.Namespace = pod.Namespace
 			event.Container.ServiceAccount = pod.Spec.ServiceAccountName
 			event.Container.Labels = pod.Labels
-			
+
 			// If image digest is missing, we might find it in status
 			// But Falco usually provides it.
 		}
@@ -156,5 +156,3 @@ func enrichEvent(msg *nats.Msg) {
 		log.Printf("Error publishing enriched event: %v", err)
 	}
 }
-
-

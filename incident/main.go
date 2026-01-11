@@ -10,9 +10,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/podwatch/podwatch/pkg/models"
 	_ "github.com/lib/pq"
 	"github.com/nats-io/nats.go"
+	"github.com/podwatch/podwatch/pkg/models"
 )
 
 var (
@@ -71,11 +71,11 @@ func main() {
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
-	
+
 	// Alerts API
 	r.GET("/v1/alerts", listAlerts)
 	r.GET("/v1/alerts/:id", getAlert)
-	
+
 	// Incidents API
 	r.GET("/v1/incidents", listIncidents)
 	r.GET("/v1/incidents/:id", getIncident)
@@ -198,7 +198,7 @@ func findOrCreateIncident(alert models.Alert) (string, error) {
 		if namespace != "" {
 			title = title + " in " + namespace
 		}
-		
+
 		triggeringEventID := ""
 		if alert.Event != nil {
 			triggeringEventID = alert.Event.EventID
@@ -325,13 +325,13 @@ func listIncidents(c *gin.Context) {
 func getIncident(c *gin.Context) {
 	id := c.Param("id")
 	var incident struct {
-		ID               string    `json:"id"`
-		Status           string    `json:"status"`
-		Severity         string    `json:"severity"`
-		Title            string    `json:"title"`
-		CreatedAt        time.Time `json:"created_at"`
-		UpdatedAt        time.Time `json:"updated_at"`
-		TriggeringEvent  string    `json:"triggering_event_id"`
+		ID              string    `json:"id"`
+		Status          string    `json:"status"`
+		Severity        string    `json:"severity"`
+		Title           string    `json:"title"`
+		CreatedAt       time.Time `json:"created_at"`
+		UpdatedAt       time.Time `json:"updated_at"`
+		TriggeringEvent string    `json:"triggering_event_id"`
 	}
 	err := db.QueryRow(`
 		SELECT id, status, severity, title, created_at, updated_at, triggering_event_id
@@ -376,7 +376,7 @@ func updateIncident(c *gin.Context) {
 
 func getIncidentTimeline(c *gin.Context) {
 	id := c.Param("id")
-	
+
 	// Get alerts for this incident
 	rows, err := db.Query(`
 		SELECT id, timestamp, rule_name, severity, description, event

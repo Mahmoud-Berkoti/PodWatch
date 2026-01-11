@@ -31,7 +31,7 @@ func NewBatchWriter(bucket, region, clusterID string) *BatchWriter {
 	sess := session.Must(session.NewSession(&aws.Config{
 		Region: aws.String(region),
 	}))
-	
+
 	uploader := s3manager.NewUploader(sess)
 
 	bw := &BatchWriter{
@@ -44,7 +44,7 @@ func NewBatchWriter(bucket, region, clusterID string) *BatchWriter {
 		flushInterval: 60 * time.Second,
 	}
 	bw.gzipWriter = gzip.NewWriter(bw.buffer)
-	
+
 	go bw.loop()
 	return bw
 }
@@ -54,7 +54,6 @@ func NewNodeBatchWriter(bucket, region, clusterID, nodeID string) *BatchWriter {
 	bw.nodeID = nodeID
 	return bw
 }
-
 
 func (bw *BatchWriter) Write(data []byte) error {
 	bw.mu.Lock()
@@ -84,10 +83,10 @@ func (bw *BatchWriter) flushIfNeeded() {
 		bw.mu.Unlock()
 		return
 	}
-	
+
 	bw.gzipWriter.Close()
 	payload := bw.buffer.Bytes()
-	
+
 	bw.buffer.Reset()
 	bw.gzipWriter.Reset(bw.buffer)
 	bw.lastWrite = time.Now()
@@ -99,17 +98,17 @@ func (bw *BatchWriter) flushIfNeeded() {
 func (bw *BatchWriter) upload(data []byte) {
 	now := time.Now().UTC()
 	// path: raw/cluster/date/node/hour/*.jsonl.gz
-	
+
 	nodePath := bw.nodeID
 	if nodePath == "" {
 		nodePath = "unknown-node"
 	}
 
-	key := fmt.Sprintf("raw/%s/%s/%s/%s/%s.jsonl.gz", 
-		bw.clusterID, 
+	key := fmt.Sprintf("raw/%s/%s/%s/%s/%s.jsonl.gz",
+		bw.clusterID,
 		now.Format("2006-01-02"),
 		nodePath,
-		now.Format("15"), 
+		now.Format("15"),
 		fmt.Sprintf("%d", now.UnixNano()))
 
 	_, err := bw.uploader.Upload(&s3manager.UploadInput{
